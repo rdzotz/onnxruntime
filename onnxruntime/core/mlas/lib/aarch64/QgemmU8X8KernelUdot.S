@@ -119,23 +119,23 @@ Return Value:
         mul     v21.4s,v31.4s,v10.4s
         mul     v23.4s,v31.4s,v11.4s
         add     v16.4s,v2.4s,v16.4s
-        add     v17.4s,v3.4s,v17.4s
         add     v18.4s,v2.4s,v18.4s
-        add     v19.4s,v3.4s,v19.4s
         add     v20.4s,v2.4s,v20.4s
-        add     v21.4s,v3.4s,v21.4s
         add     v22.4s,v2.4s,v22.4s
+        add     v17.4s,v3.4s,v17.4s
+        add     v19.4s,v3.4s,v19.4s
+        add     v21.4s,v3.4s,v21.4s
         add     v23.4s,v3.4s,v23.4s
         b       .LGemmU8X8.M4.ComputeBlockLoopStart
 
 .LGemmU8X8.M4.SkipScaleByZeroPointB:
         add     v16.4s,v2.4s,v8.4s
-        add     v17.4s,v3.4s,v8.4s
         add     v18.4s,v2.4s,v9.4s
-        add     v19.4s,v3.4s,v9.4s
         add     v20.4s,v2.4s,v10.4s
-        add     v21.4s,v3.4s,v10.4s
         add     v22.4s,v2.4s,v11.4s
+        add     v17.4s,v3.4s,v8.4s
+        add     v19.4s,v3.4s,v9.4s
+        add     v21.4s,v3.4s,v10.4s
         add     v23.4s,v3.4s,v11.4s
 
 .LGemmU8X8.M4.ComputeBlockLoopStart:
@@ -194,13 +194,13 @@ Return Value:
         UdotByElement 31, 1, 7, 1
         add     x10,x2,x6,lsl #2            // compute output row 2
         add     v16.4s,v16.4s,v24.4s
-        add     v17.4s,v17.4s,v25.4s
         add     v18.4s,v18.4s,v26.4s
-        add     v19.4s,v19.4s,v27.4s
-        add     x11,x10,x6,lsl #2           // compute output row 3
         add     v20.4s,v20.4s,v28.4s
-        add     v21.4s,v21.4s,v29.4s
         add     v22.4s,v22.4s,v30.4s
+        add     x11,x10,x6,lsl #2           // compute output row 3
+        add     v17.4s,v17.4s,v25.4s
+        add     v19.4s,v19.4s,v27.4s
+        add     v21.4s,v21.4s,v29.4s
         add     v23.4s,v23.4s,v31.4s
         add     x12,x11,x6,lsl #2           // compute output row 4
         subs    x5,x5,#8                    // adjust CountN remaining
@@ -339,21 +339,21 @@ Return Value:
         ld1     {v30.4s},[x9],#16           // load ZeroPointB[0]
         ld1     {v31.4s},[x9],#16           // load ZeroPointB[4]
         mul     v16.4s,v30.4s,v8.4s
-        mul     v17.4s,v31.4s,v8.4s
         mul     v18.4s,v30.4s,v9.4s
+        mul     v17.4s,v31.4s,v8.4s
         mul     v19.4s,v31.4s,v9.4s
         ld1     {v4.16b},[x0],#16           // load packed A0
         add     v16.4s,v2.4s,v16.4s
-        add     v17.4s,v3.4s,v17.4s
         add     v18.4s,v2.4s,v18.4s
+        add     v17.4s,v3.4s,v17.4s
         add     v19.4s,v3.4s,v19.4s
         b       .LGemmU8X8.M2.ComputeBlockLoop
 
 .LGemmU8X8.M2.SkipScaleByZeroPointB:
         ld1     {v4.16b},[x0],#16           // load packed A0
         add     v16.4s,v2.4s,v8.4s
-        add     v17.4s,v3.4s,v8.4s
         add     v18.4s,v2.4s,v9.4s
+        add     v17.4s,v3.4s,v8.4s
         add     v19.4s,v3.4s,v9.4s
 
 .LGemmU8X8.M2.ComputeBlockLoop:
