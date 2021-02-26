@@ -292,7 +292,6 @@
 |SampleOp|(*in* X:**T**, *out* Y:**T**)|1+|**T** = tensor(float)|
 |SkipLayerNormalization|(*in* input:**T**, *in* skip:**T**, *in* gamma:**T**, *in* beta:**T**, *in* bias:**T**, *out* output:**T**, *out* mean:**U**, *out* inv_std_var:**U**)|1+|**T** = tensor(double), tensor(float)|
 |Tokenizer|(*in* X:**T**, *out* Y:**T**)|1+|**T** = tensor(string)|
-|TransposeMatMul|(*in* A:**T**, *in* B:**T**, *out* Y:**T**)|1+|**T** = tensor(float)|
 |Unique|(*in* x:**T**, *out* y:**T**, *out* idx:**tensor(int64)**, *out* counts:**tensor(int64)**)|1+|**T** = tensor(float)|
 |WordConvEmbedding|(*in* Sequence:**T**, *in* W:**T1**, *in* B:**T1**, *in* C:**T1**, *out* Y:**T1**)|1+|**T** = tensor(int32)<br/> **T1** = tensor(float)|
 | |
@@ -508,7 +507,6 @@
 |QuantizeLinear|(*in* x:**T1**, *in* y_scale:**T1**, *in* y_zero_point:**T2**, *out* y:**T2**)|1+|**T1** = tensor(float16)<br/> **T2** = tensor(int8), tensor(uint8)|
 |Rfft|(*in* X:**T**, *out* Y:**T**)|1+|**T** = tensor(double), tensor(float), tensor(float16)|
 |SkipLayerNormalization|(*in* input:**T**, *in* skip:**T**, *in* gamma:**T**, *in* beta:**T**, *in* bias:**T**, *out* output:**T**, *out* mean:**U**, *out* inv_std_var:**U**)|1+|**T** = tensor(float), tensor(float16)|
-|TransposeMatMul|(*in* A:**T**, *in* B:**T**, *out* Y:**T**)|1+|**T** = tensor(double), tensor(float), tensor(float16)|
 | |
 | |
 

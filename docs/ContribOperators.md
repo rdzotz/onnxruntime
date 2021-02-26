@@ -45,7 +45,6 @@
   * <a href="#com.microsoft.SampleOp">com.microsoft.SampleOp</a>
   * <a href="#com.microsoft.SkipLayerNormalization">com.microsoft.SkipLayerNormalization</a>
   * <a href="#com.microsoft.Tokenizer">com.microsoft.Tokenizer</a>
-  * <a href="#com.microsoft.TransposeMatMul">com.microsoft.TransposeMatMul</a>
   * <a href="#com.microsoft.Trilu">com.microsoft.Trilu</a>
   * <a href="#com.microsoft.Unique">com.microsoft.Unique</a>
   * <a href="#com.microsoft.WordConvEmbedding">com.microsoft.WordConvEmbedding</a>
@@ -2085,50 +2084,6 @@ This version of the operator has been available since version 1 of the 'com.micr
 <dl>
 <dt><tt>T</tt> : tensor(string)</dt>
 <dd>Input/Output is a string tensor</dd>
-</dl>
-
-
-### <a name="com.microsoft.TransposeMatMul"></a><a name="com.microsoft.transposematmul">**com.microsoft.TransposeMatMul**</a>
-
-  Duplicate of FusedMatMul. Going forward FusedMatMul should be used. This OP will be supported for backward compatibility. 
-  Matrix product that behaves like numpy.matmul: https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.matmul.html
-
-#### Version
-
-This version of the operator has been available since version 1 of the 'com.microsoft' operator set.
-
-#### Attributes
-
-<dl>
-<dt><tt>alpha</tt> : float</dt>
-<dd>Scalar multiplier for the product of the input tensors.</dd>
-<dt><tt>transA</tt> : int</dt>
-<dd>Whether A should be transposed on the last two dimensions before doing multiplication</dd>
-<dt><tt>transB</tt> : int</dt>
-<dd>Whether B should be transposed on the last two dimensions before doing multiplication</dd>
-</dl>
-
-#### Inputs
-
-<dl>
-<dt><tt>A</tt> : T</dt>
-<dd>N-dimensional matrix A</dd>
-<dt><tt>B</tt> : T</dt>
-<dd>N-dimensional matrix B</dd>
-</dl>
-
-#### Outputs
-
-<dl>
-<dt><tt>Y</tt> : T</dt>
-<dd>Matrix multiply results</dd>
-</dl>
-
-#### Type Constraints
-
-<dl>
-<dt><tt>T</tt> : tensor(float16), tensor(float), tensor(double), tensor(bfloat16)</dt>
-<dd>Constrain input and output types to float tensors.</dd>
 </dl>
 
 

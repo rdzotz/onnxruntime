@@ -7,14 +7,6 @@ namespace onnxruntime {
 namespace contrib {
 
 ONNX_OPERATOR_KERNEL_EX(
-    TransposeMatMul,
-    kMSDomain,
-    1,
-    kCpuExecutionProvider,
-    KernelDefBuilder().TypeConstraint("T", DataTypeImpl::GetTensorType<float>()),
-    MatMul<float>);
-
-ONNX_OPERATOR_KERNEL_EX(
     FusedMatMul,
     kMSDomain,
     1,

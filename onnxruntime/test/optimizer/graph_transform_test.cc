@@ -804,6 +804,7 @@ TEST_F(GraphTransformationTests, Gemm_Relu_three_input) {
 }
 
 TEST_F(GraphTransformationTests, TransposeMatmulFusion) {
+  std::cout << "start of test";
   auto model_uri = MODEL_FOLDER "fusion/transpose_matmul_4d_fusion.onnx";
   std::shared_ptr<Model> p_model;
   ASSERT_TRUE(Model::Load(model_uri, p_model, nullptr, *logger_).IsOK());
@@ -811,6 +812,7 @@ TEST_F(GraphTransformationTests, TransposeMatmulFusion) {
 
   onnxruntime::GraphTransformerManager graph_transformation_mgr{5};
   graph_transformation_mgr.Register(onnxruntime::make_unique<MatmulTransposeFusion>(), TransformerLevel::Level1);
+  std::cout << "after register MatmulTransposeFusion";
   auto ret = graph_transformation_mgr.ApplyTransformers(graph, TransformerLevel::Level1, *logger_);
   ASSERT_TRUE(ret.IsOK());
 
