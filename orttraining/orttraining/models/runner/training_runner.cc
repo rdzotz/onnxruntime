@@ -1236,7 +1236,7 @@ Status WithOrtValuesFromTensorProtos(
     std::vector<char> tensor_buffer{};
     tensor_buffer.resize(element_size * shape.Size());
 
-    const MemBuffer mem_buffer{tensor_buffer.data(), tensor_buffer.size(), cpu_alloc_info};
+    MemBuffer mem_buffer{tensor_buffer.data(), tensor_buffer.size(), cpu_alloc_info};
 
     OrtValue ort_value;
     OrtCallback callback;

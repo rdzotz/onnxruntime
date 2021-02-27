@@ -53,8 +53,9 @@ common::Status DataSet::AddData(const vector<ONNX_NAMESPACE::TensorProto>& featu
     OrtMemoryInfo info("Cpu", OrtDeviceAllocator, OrtDevice{}, 0, OrtMemTypeDefault);
     std::unique_ptr<char[]> buffer(new char[cpu_tensor_length]);
     OrtCallback deleter;
+    MemBuffer tbuf(buffer.get(), cpu_tensor_length, info);
     ORT_RETURN_IF_ERROR(utils::TensorProtoToMLValue(
-        Env::Default(), nullptr, tensor_proto, MemBuffer(buffer.get(), cpu_tensor_length, info), ort_value, deleter));
+        Env::Default(), nullptr, tensor_proto, tbuf, ort_value, deleter));
 
     sample->push_back(ort_value);
     ortvalue_buffers_.emplace_back(std::move(buffer));

@@ -14,7 +14,14 @@ Tensor::Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, const 
                ptrdiff_t offset)
     : alloc_info_(alloc) {
   ORT_ENFORCE(p_type != nullptr);
-  Init(p_type, shape, p_data, nullptr, offset);
+  Init(p_type, shape, p_data, offset);
+}
+
+Tensor::Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, ptrdiff_t offset,
+               const OrtMemoryInfo& alloc, std::vector<std::function<void(void)>>&& deleters)
+    : alloc_info_(alloc), deleters_(std::move(deleters)) {
+  ORT_ENFORCE(p_type != nullptr);
+  Init(p_type, shape, p_data, offset);
 }
 
 Tensor::Tensor(MLDataType p_type, const TensorShape& shape, std::shared_ptr<IAllocator> allocator)
@@ -33,7 +40,27 @@ Tensor::Tensor(MLDataType p_type, const TensorShape& shape, std::shared_ptr<IAll
     p_data = allocator->Alloc(len);
   }
 
-  Init(p_type, shape, p_data, allocator);
+  // for string tensors, do the placement new for strings on pre-allocated buffer.
+  if (utils::IsPrimitiveDataType<std::string>(p_type->AsPrimitiveDataType())) {
+    auto* ptr = static_cast<std::string*>(p_data);
+    for (int64_t i = 0, n = shape_size; i < n; ++i) {
+      new (ptr + i) std::string();
+    }
+  }
+
+  // This tensor own the buffer, setup release the buffer when this tensor is deconstructed.
+  if (utils::IsPrimitiveDataType<std::string>(p_type->AsPrimitiveDataType())) {
+     deleters_.push_back([p_data, shape_size]() {
+        using string = std::string;
+        auto* ptr = static_cast<std::string*>(p_data);
+        int64_t len = shape_size;
+        for (int64_t i = 0; i < len; i++)
+          ptr[i].~string();
+     });
+  }
+  deleters_.push_back(CreateBufDelClr(std::move(allocator), p_data));
+
+  Init(p_type, shape, p_data, 0);
 }
 
 size_t Tensor::SizeInBytes() const {
@@ -44,7 +71,7 @@ size_t Tensor::SizeInBytes() const {
   return ret;
 }
 
-void Tensor::Init(MLDataType p_type, const TensorShape& shape, void* p_raw_data, AllocatorPtr deleter, ptrdiff_t offset) {
+void Tensor::Init(MLDataType p_type, const TensorShape& shape, void* p_raw_data, ptrdiff_t offset) {
   int64_t shape_size = shape.Size();
   if (shape_size < 0) ORT_THROW("shape.Size() must >=0");
   dtype_ = p_type->AsPrimitiveDataType();
@@ -52,31 +79,20 @@ void Tensor::Init(MLDataType p_type, const TensorShape& shape, void* p_raw_data,
               DataTypeImpl::ToString(p_type));
   shape_ = shape;
   p_data_ = p_raw_data;
-  // if caller passed in a deleter, that means this tensor own this buffer
-  // we will release the buffer when this tensor is deconstructed.
-  buffer_deleter_ = std::move(deleter);
-  // for string tensors, if this tensor own the buffer (caller passed in the deleter)
-  // do the placement new for strings on pre-allocated buffer.
-  if (buffer_deleter_ && IsDataTypeString()) {
-    auto* ptr = static_cast<std::string*>(p_data_);
-    for (int64_t i = 0, n = shape_size; i < n; ++i) {
-      new (ptr + i) std::string();
-    }
-  }
   byte_offset_ = offset;
 }
 
 Tensor::Tensor(Tensor&& other) noexcept
     : p_data_(other.p_data_),
-      buffer_deleter_(other.buffer_deleter_),
       shape_(other.shape_),
       dtype_(other.dtype_),
       alloc_info_(other.alloc_info_),
-      byte_offset_(other.byte_offset_) {
+      byte_offset_(other.byte_offset_),
+      deleters_(std::move(other.deleters_)) {
   other.dtype_ = DataTypeImpl::GetType<float>()->AsPrimitiveDataType();
   other.shape_ = TensorShape(std::vector<int64_t>(1, 0));
   other.p_data_ = nullptr;
-  other.buffer_deleter_ = nullptr;
+  other.deleters_.clear();
   other.byte_offset_ = 0;
 }
 
@@ -89,13 +105,13 @@ Tensor& Tensor::operator=(Tensor&& other) noexcept {
     alloc_info_ = other.alloc_info_;
     byte_offset_ = other.byte_offset_;
     p_data_ = other.p_data_;
-    buffer_deleter_ = other.buffer_deleter_;
+    deleters_ = std::move(other.deleters_);
 
     other.dtype_ = DataTypeImpl::GetType<float>()->AsPrimitiveDataType();
     other.shape_ = TensorShape(std::vector<int64_t>(1, 0));
     other.p_data_ = nullptr;
     other.byte_offset_ = 0;
-    other.buffer_deleter_ = nullptr;
+    other.deleters_.clear();
   }
   return *this;
 }
@@ -105,18 +121,11 @@ Tensor::~Tensor() {
 }
 
 void Tensor::ReleaseBuffer() {
-  if (buffer_deleter_) {
-    // if current tensor is responsible for deleting the buffer
-    // and it is a string tensor, need to explicitly call string(s)
-    // __dtor(s).
-    if (IsDataTypeString()) {
-      using string = std::string;
-      auto* ptr = static_cast<std::string*>(p_data_);
-      int64_t len = shape_.Size();
-      for (int64_t i = 0; i < len; i++)
-        ptr[i].~string();
-    }
-    buffer_deleter_->Free(p_data_);
+  auto dit = deleters_.begin();
+  while (dit != deleters_.end()) {
+    (*dit)();
+    deleters_.erase(dit);
+    dit = deleters_.begin();
   }
 }
 
