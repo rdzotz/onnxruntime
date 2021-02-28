@@ -94,7 +94,7 @@ class Tensor final {
    *                 Must be allocated by the deleter, will be released when tensor destructs.
    * \param deleter  points to the allocator from which p_data is allocated.
    */
-  Tensor::Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, AllocatorPtr&& deleter);
+  Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, AllocatorPtr&& deleter);
 
   /**
    * Create tensor with given type, shape, pre-allocated memory and the allocator. 
