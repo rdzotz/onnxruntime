@@ -77,13 +77,24 @@ class Tensor final {
   /**
    * Create tensor with given type, shape, pre-allocated memory and allocator info.
    * This function won't check if the preallocated buffer(p_data) has enough room for the shape.
-   * \param data A preallocated buffer. Can be NULL if the shape is empty.
+   * \param p_data A preallocated buffer. Can be NULL if the shape is empty.
    *              Tensor does not own the data and will not delete it
    * \param alloc Where the buffer('data') was allocated from
    * \param offset Offset in bytes to start of Tensor within p_data. 
    */
   Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, const OrtMemoryInfo& alloc,
          ptrdiff_t offset = 0);
+
+  /**
+   * Create tensor with given type, shape, pre-allocated memory and ways to release buffer.
+   * 
+   * This function won't check if the preallocated buffer(p_data) has enough room for the shape.
+   *
+   * \param p_data   A preallocated buffer. Can be NULL if the shape is empty.
+   *                 Must be allocated by the deleter, will be released when tensor destructs.
+   * \param deleter  points to the allocator from which p_data is allocated.
+   */
+  Tensor::Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, AllocatorPtr&& deleter);
 
   /**
    * Create tensor with given type, shape, pre-allocated memory and the allocator. 

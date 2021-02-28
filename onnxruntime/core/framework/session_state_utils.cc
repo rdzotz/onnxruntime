@@ -69,8 +69,14 @@ static common::Status DeserializeTensorProto(const Env& env, const std::basic_st
 
   const Tensor& p_deserialize_tensor = tmp_ort_value.Get<Tensor>();
 
-  p_tensor = onnxruntime::make_unique<Tensor>(p_deserialize_tensor.DataType(), p_deserialize_tensor.Shape(), m.GetBuffer(),
-                                              m.GetAllocInfo());
+  if (m.IsOwner()) {
+    p_tensor = onnxruntime::make_unique<Tensor>(p_deserialize_tensor.DataType(), p_deserialize_tensor.Shape(), m.GetBuffer(),
+                                                m.Release());
+  } else {
+    p_tensor = onnxruntime::make_unique<Tensor>(p_deserialize_tensor.DataType(), p_deserialize_tensor.Shape(), m.GetBuffer(),
+                                                m.GetAllocInfo());  
+  }
+
   // TODO: does this function work for string tensor?
   Status copy_status = data_transfer_mgr.CopyTensor(p_deserialize_tensor, *p_tensor);
   if (d.f) d.f(d.param);
@@ -206,6 +212,7 @@ common::Status SaveInitializedTensors(
         oss << "Deserialize tensor " << name << " failed." << st.ErrorMessage();
         return Status(st.Category(), st.Code(), oss.str());
       }
+      ORT_ENFORCE(!m->IsOwner());
     }
 
     // any outer scope value is shadowed by a local value and can't override it.

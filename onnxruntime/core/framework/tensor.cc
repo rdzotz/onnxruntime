@@ -17,6 +17,14 @@ Tensor::Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, const 
   Init(p_type, shape, p_data, offset);
 }
 
+Tensor::Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, AllocatorPtr&& deleter)
+    : alloc_info_(deleter->Info()) {
+  ORT_ENFORCE(p_type != nullptr);
+  ORT_ENFORCE(deleter);
+  deleters_.push_back(CreateBufDelClr(std::move(deleter), p_data));
+  Init(p_type, shape, p_data, 0);
+}
+
 Tensor::Tensor(MLDataType p_type, const TensorShape& shape, void* p_data, ptrdiff_t offset,
                const OrtMemoryInfo& alloc, std::vector<std::function<void(void)>>&& deleters)
     : alloc_info_(alloc), deleters_(std::move(deleters)) {
