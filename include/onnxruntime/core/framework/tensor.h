@@ -58,7 +58,8 @@ using BufferNakedPtr = void*;
  * @return  lambda function for releasing the buffer
 */
 inline std::function<void(void)> CreateBufDelClr(AllocatorPtr&& alloc, void* p_data) {
-  return [deleter(std::move(alloc)), p_data]() {
+  AllocatorPtr deleter(std::move(alloc));
+  return [deleter, p_data]() {
     if (p_data) deleter->Free(p_data);
   };
 }

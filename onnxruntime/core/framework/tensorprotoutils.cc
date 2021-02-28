@@ -738,11 +738,11 @@ Status TensorProtoToMLValue(const Env& env, const ORTCHAR_T* model_path,
     // need to transfer buffer ownership to tensor
     if (deleter.f != nullptr) {
       // clean up should happen eariler than releasing buffer
-      tensor_deleters.push_back([deleter]() { deleter.f(deleter.param); });
-      //lambda used copy capture, should be safe to clear out deleter now
-      deleter.f = nullptr;
-      deleter.param = nullptr;
+      OrtCallback tcall;
+      MoveOrtCallback(deleter, tcall);
+      tensor_deleters.push_back([tcall]() { tcall.f(tcall.param); });
     }
+    ORT_ENFORCE(deleter.f == nullptr);
     tensor_deleters.push_back(CreateBufDelClr(std::move(m.Release()), m.GetBuffer()));
   }
   ORT_ENFORCE(!m.IsOwner(), "MemBuffer ownership should be cleared after Tensor is created!");
