@@ -1004,13 +1004,13 @@ Status SessionState::FinalizeSessionStateImpl(const std::basic_string<PATH_CHAR_
   MemoryInfo::GenerateTensorMap(GetExecutionPlan(), GetOrtValueNameIdxMap());
 #endif
 
+  const auto& initializer_allocation_order = p_seq_exec_plan_->initializer_allocation_order;
   const auto disable_prepacking =
       session_options.GetConfigOrDefault(kOrtSessionOptionsConfigDisablePrepacking, "0");
-  const bool trace_tensor_alloc = enable_mem_pattern_ && disable_prepacking == "1";
+
+  const bool trace_tensor_alloc = enable_mem_pattern_ && ( !initializer_allocation_order.empty() || disable_prepacking == "1");
   std::unique_ptr<ITensorAllocator> tensor_allocator(
       ITensorAllocator::Create(trace_tensor_alloc, *p_seq_exec_plan_, *this, weights_buffers_));
-
-  const auto& initializer_allocation_order = p_seq_exec_plan_->initializer_allocation_order;
 
   // move initializers from TensorProto instances in Graph to OrtValue instances in SessionState
   ORT_RETURN_IF_ERROR(

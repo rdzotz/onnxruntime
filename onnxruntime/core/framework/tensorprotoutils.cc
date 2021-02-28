@@ -20,7 +20,6 @@
 #include "core/platform/path_lib.h"
 #include "core/session/ort_apis.h"
 #include "onnx/defs/tensor_proto_util.h"
-#include "onnx/common/ir.h"
 
 using namespace ONNX_NAMESPACE;
 using namespace ::onnxruntime::common;
@@ -595,6 +594,28 @@ static Status GetFileContent(
   return Status::OK();
 }
 
+/**
+ * @brief a scope guard
+ * This is a copy from ir.h, but include ir.h here cause linux pipeline fail to compile
+ * TODO!! should compose a general scope guard shared by all components.
+*/
+class ResourceGuard final {
+  std::function<void()> destructor_;
+  bool released_;
+
+ public:
+  ResourceGuard(std::function<void()> destructor)
+      : destructor_(std::move(destructor)), released_(false) {}
+
+  ~ResourceGuard() {
+    if (!released_) destructor_();
+  }
+
+  void release() {
+    released_ = true;
+  }
+};
+
 static void MoveOrtCallback(OrtCallback& from, OrtCallback& to) {
   to.f = from.f;
   to.param = from.param;
@@ -743,7 +764,7 @@ Status TensorProtoToMLValue(const Env& env, const ORTCHAR_T* model_path,
       tensor_deleters.push_back([tcall]() { tcall.f(tcall.param); });
     }
     ORT_ENFORCE(deleter.f == nullptr);
-    tensor_deleters.push_back(CreateBufDelClr(std::move(m.Release()), m.GetBuffer()));
+    tensor_deleters.push_back(CreateBufDelClr(m.Release(), m.GetBuffer()));
   }
   ORT_ENFORCE(!m.IsOwner(), "MemBuffer ownership should be cleared after Tensor is created!");
 
