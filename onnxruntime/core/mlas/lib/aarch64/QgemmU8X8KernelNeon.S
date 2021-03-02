@@ -37,10 +37,10 @@ Routine Description:
 Arguments:
 
     A (x0) - Supplies the address of matrix A. The matrix data has been packed
-        using MlasGemmU8X8CopyPackANeon.
+        using MlasGemmU8X8CopyPackA<MLAS_GEMM_U8X8_KERNEL_NEON>.
 
     B (x1) - Supplies the address of matrix B. The matrix data has been packed
-        using MlasGemmU8X8CopyPackBNeon.
+        using MlasGemmU8X8CopyPackB<MLAS_GEMM_U8X8_KERNEL_NEON>.
 
     C (x2) - Supplies the address of matrix C.
 
@@ -56,13 +56,18 @@ Arguments:
 
     ldc (x6) - Supplies the first dimension of matrix C.
 
-    RowSumBuffer (x7) - Supplies the sum of each row from matrix A multiplied by
-        the zero point offset of matrix B. These values are accumulated into every
-        row of matrix C.
+    RowSumBuffer (x7) - Supplies the sum of each row from matrix A. These values
+        have been pre-scaled by the zero point offset of matrix B if the offset
+        is per-tensor (ZeroPointB is nullptr). Otherwise, these values must be
+        scaled by the per-column zero point offsets of matrix B. These values are
+        accumulated into every row of matrix C.
 
     ColumnSumBuffer - Supplies the sum of each column from matrix B multiplied
         by the zero point offset of matrix A. These values are accumulated into
         every column of matrix C.
+
+    ZeroPointB - Optionally supplies the per-column zero point offsets of matrix
+        B, else nullptr if the matrix B is using per-tensor quantization.
 
     ZeroMode - Supplies true if the output matrix must be zero initialized, else
         false if the output matrix is accumulated into.
