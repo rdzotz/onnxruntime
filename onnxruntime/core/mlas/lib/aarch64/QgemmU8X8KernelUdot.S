@@ -138,6 +138,24 @@ Return Value:
         add     v21.4s,v3.4s,v10.4s
         add     v23.4s,v3.4s,v11.4s
 
+//
+// The packing layout is setup to have a pair of four quad vectors from
+// packed matrix A and a pair of eight quad vectors from packed matrix B.
+// With this scheme, alternating loads from the packed matrices can be
+// interleaved with the dot product instructions.
+//
+// One negative consequence of using four rows here is that the accumulator
+// register tile is too small for processors with high out of order execution
+// windows (such as the Apple M1). The dot product instructions for a given
+// cell are too close to each other to avoid dependencies. To workaround this,
+// the below loop uses a pair of accumulator registers that are then added
+// together when the loop finishes.
+//
+// A55-based cores are optimized for 64-bit loads, so use 64-bit loads for
+// packed matrix A. At the time of this implementation, using a wider 128-bit
+// load didn't affect performance for higher end cores.
+//
+
 .LGemmU8X8.M4.ComputeBlockLoopStart:
         ldr     d4,[x0],#32                 // load packed A0.l
         movi    v24.4s,#0
@@ -193,7 +211,7 @@ Return Value:
         UdotByElement 29, 1, 7, 0
         UdotByElement 31, 1, 7, 1
         add     x10,x2,x6,lsl #2            // compute output row 2
-        add     v16.4s,v16.4s,v24.4s
+        add     v16.4s,v16.4s,v24.4s        // fold high results into low results
         add     v18.4s,v18.4s,v26.4s
         add     v20.4s,v20.4s,v28.4s
         add     v22.4s,v22.4s,v30.4s
